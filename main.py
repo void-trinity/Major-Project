@@ -1,14 +1,13 @@
-import matplotlib.pyplot as plt
 from config.config import K
 from helpers.init_resources import init_resources
 from helpers.init_tasks import init_tasks
 from helpers.init_task_dag import init_task_dag
 from helpers.moheft import moheft
 from helpers.pair_solutions import pair_solutions
+from helpers.plot import plot
+from helpers.validate_output import validate_output
 
-total_resources = 30
-total_resources2 = 60
-total_resources3 = 120
+total_resources = 12
 
 
 filename = 'Montage_25.xml'
@@ -16,10 +15,6 @@ filename = 'Montage_25.xml'
 
 print("----Generating Resources Dict1----")
 resources_dict = init_resources(total_resources)
-print("----Generating Resources Dict2----")
-resources_dict2 = init_resources(total_resources2)
-print("----Generating Resources Dict3----")
-resources_dict3 = init_resources(total_resources3)
 
 print("----Generating Tasks Dict----")
 tasks_dict = init_tasks(filename = filename)
@@ -28,39 +23,34 @@ print("----Generating Dag Dict----")
 dag_dict = init_task_dag(tasks_dict)
 
 print("----Running Moheft1----")
-S1 = moheft(tasks_dict, resources_dict3, dag_dict)
-# print("----Running Moheft2----")
-# S2 = moheft(tasks_dict, resources_dict2, dag_dict)
+S1 = moheft(tasks_dict, resources_dict, dag_dict, K)
+print("----Running Moheft2----")
+S2 = moheft(tasks_dict, resources_dict, dag_dict, 2*K)
+print("----Running Moheft3----")
+S3 = moheft(tasks_dict, resources_dict, dag_dict, 3*K)
 
-# pairs = pair_solutions(S1, S2)
-#
+pairs = pair_solutions(S1, S2)
+
 t1 = list()
-# t2 = list()
-#
-# for (x, y) in pairs:
-#     t1.append(x.get_sorted_workflow())
-#     t2.append(y.get_sorted_workflow())
-#
-# print(t1)
-# print(t2)
-#
-# print("----Running Moheft3----")
-# S3 = moheft(tasks_dict, resources_dict3, dag_dict)
-# t3 = list()
-#
-for s in S1:
-    t1.append(s.get_sorted_workflow())
+t2 = list()
 
-print(t1)
+for (x, y) in pairs:
+    t1.append(x.get_sorted_workflow())
+    t2.append(y.get_sorted_workflow())
 
-x_data = list()
-y_data = list()
-s_list = list()
-for s in S1:
-    x_data.append(s.makespan)
-    y_data.append(s.total_cost)
+print('----Writing input training----')
+f = open('training_dataset/{}-{}-input_training.txt'.format(filename, K), 'w')
+f.write('{}'.format(t1))
+f.close()
+print('----Writing output training----')
+f = open('training_dataset/{}-{}-output_training.txt'.format(filename, K), 'w')
+f.write('{}'.format(t2))
+f.close()
 
+plot(S1, filename, 'input_training', K)
+plot(S2, filename, 'output_training', 2*K)
+plot(S3, filename, 'moheft_output', 3*K)
 
+S3 = validate_output(filename, tasks_dict, resources_dict, dag_dict)
 
-plt.plot(x_data, y_data, 'ro')
-plt.savefig('{}-{}-{}.png'.format(filename, K, total_resources))
+plot(S3, filename, 'output_validation', 3*K)

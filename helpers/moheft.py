@@ -1,11 +1,10 @@
 from helpers.calculate_b_rank import calculate_b_rank
-from config.config import K
 from model.workflow import Workflow
 from helpers.crowding_distance_sort import crowding_distance_sort
 import copy
 from helpers.get_pareto_result import get_pareto_result
 
-def moheft(tasks_dict, resources_dict, dag_dict):
+def moheft(tasks_dict, resources_dict, dag_dict, K):
     b_rank = calculate_b_rank(tasks_dict)
 
     schedules = list()
@@ -34,8 +33,6 @@ def moheft(tasks_dict, resources_dict, dag_dict):
         for s in temp_list:
             s.schedule(counter, tasks_dict, resources_dict, dag_dict)
             counter = counter + 1
-
-        temp_list = get_pareto_result(temp_list)
         schedules = crowding_distance_sort(temp_list, K)
 
-    return schedules
+    return get_pareto_result(schedules)

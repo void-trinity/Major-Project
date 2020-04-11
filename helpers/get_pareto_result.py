@@ -7,11 +7,11 @@ def get_pareto_result(schedules):
 
             for s2 in schedules:
                 if s1.id != s2.id:
-                    if (s2.makespan <= s1.makespan and s2.total_cost < s1.total_cost) or (s2.total_cost <= s1.total_cost and s2.makespan < s1.makespan):
+                    if (s2.makespan <= s1.makespan and s2.total_cost < s1.total_cost and s2.rel_inverse < s1.rel_inverse) or (s2.total_cost <= s1.total_cost and s2.makespan < s1.makespan and s2.rel_inverse < s1.rel_inverse) or (s2.rel_inverse <= s1.rel_inverse and s2.makespan < s1.makespan and s2.total_cost < s1.total_cost):
                         defeat = True
                         break
 
             if defeat is False:
                 pareto_list.append(s1)
-                
+
     return pareto_list

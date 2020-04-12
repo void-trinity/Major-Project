@@ -2,6 +2,7 @@ import copy
 import statistics
 import math
 from config.config import n, b
+import numpy as np
 
 class Workflow:
     id = 0
@@ -39,38 +40,33 @@ class Workflow:
 
         for (task, resource) in self.workflow:
             processing_time[task] = float(tasks_dict[task].runtime / resources_dict[resource].cu)
-            if len(tasks_dict[task].predecessor_tasks) > 0:
-                start_time[task] = max([finish_time[x] for x in tasks_dict[task].predecessor_tasks])
+            max_time = 0
+            for predecessor in tasks_dict[task].predecessor_tasks:
+                if self.task_to_resource_dict[predecessor] != resource:
+                    max_time = max(max_time, dag_dict[predecessor][task]/(1024.0*1024*1024))
+            processing_time[task] += max_time
+
+        for (task, resource) in self.workflow:
+            if len(tasks_dict[task].predecessor_tasks) == 0:
+                finish_time[task] = processing_time[task]
             else:
-                start_time[task] = 0
-
-            transfer_bytes = 0
-            for t in dag_dict[task]:
-                if t in self.task_to_resource_dict and self.task_to_resource_dict[t] != resource:
-                    transfer_bytes = transfer_bytes + dag_dict[task][t]
-
-            finish_time[task] = start_time[task] + processing_time[task] + transfer_bytes/(1024.0*1024*1024)
-            self.billing_time[resource] = self.billing_time[resource] + finish_time[task]
+                finish_time[task] = processing_time[task] + max([finish_time[x] for x in tasks_dict[task].predecessor_tasks])
+            self.billing_time[resource] += finish_time[task]
 
         self.makespan = max(finish_time.values())
         self.processing_time = copy.deepcopy(processing_time)
 
 
     def calculate_cost(self, tasks_dict, resources_dict, dag_dict):
-        total_cost = 0.0
-        
-        for resource in self.billing_time:
-            total_cost = total_cost + self.billing_time[resource] * resources_dict[resource].price
+        cost = dict()
 
-        transfer_bytes = 0.0
         for (task, resource) in self.workflow:
-            for t in dag_dict[task]:
-                if t in self.task_to_resource_dict and self.task_to_resource_dict[t] != resource:
-                    transfer_bytes = transfer_bytes + dag_dict[task][t]
-            
-        total_cost = total_cost + transfer_bytes / (1024*1024*1024.0) * 0.01
+            c1 = self.processing_time[task] * resources_dict[resource].price
+            c2 = (sum([x.size for x in tasks_dict[task].input_files])/(1024*1024*1024.0) + sum([x.size for x in tasks_dict[task].output_files])/(1024*1024*1024.0)) * resources_dict[resource].price
+            cost[task] = c1 + c2
 
-        self.total_cost = total_cost
+        self.cost = copy.deepcopy(cost)
+        self.total_cost = sum(cost.values())
         
 
 
@@ -92,11 +88,15 @@ class Workflow:
 
 
     def calculate_reliability(self):
-        reliability = 1.0
+        reliability = dict()
         for task in self.processing_time:
-            reliability = reliability * math.exp(pow((-self.processing_time[task]/n), b))
+            reliability[task] = 1 - float(np.exp(-np.power(self.processing_time[task]/n, b)))
 
-        self.rel_inverse = 1 / reliability
+        rel = 1.0
+        for task in reliability:
+            rel = rel * reliability[task]
+
+        self.rel_inverse = rel
 
 
     def schedule(self, id, tasks_dict, resources_dict, dag_dict):
@@ -112,4 +112,4 @@ class Workflow:
         return [x[1] for x in t]
 
     def print(self, resources_dict):
-        print("ID: {}\nMakespan: {}\nCost: {}\nReliability: {}\nDegree of Imbalance: {}".format(self.id, self.makespan, self.total_cost, self.reliability, self.degree_of_imbalance))
+        print("ID: {}\nMakespan: {}\nCost: {}\nReliability: {}\nDegree of Imbalance: {}".format(self.id, self.makespan, self.total_cost, self.rel_inverse, self.degree_of_imbalance))

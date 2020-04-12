@@ -24,14 +24,14 @@ def plot(S, filename, type, K):
 
 
 
-    plt.plot(makespan_x, makespan_y)
+    plt.plot(makespan_x, makespan_y, 'ro')
     plt.savefig('graphs/{}-{}-{}-makespan.png'.format(filename, K, type))
     plt.close()
 
-    plt.plot(cost_x, cost_y)
+    plt.plot(cost_x, cost_y, 'ro')
     plt.savefig('graphs/{}-{}-{}-cost.png'.format(filename, K, type))
     plt.close()
 
-    plt.plot(rel_inverse_x, rel_inverse_y)
+    plt.plot(rel_inverse_x, rel_inverse_y, 'ro')
     plt.savefig('graphs/{}-{}-{}-rel_inv.png'.format(filename, K, type))
     plt.close()

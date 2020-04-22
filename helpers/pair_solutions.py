@@ -1,7 +1,7 @@
 import math
 
 def get_dist(s1, s2):
-    dist = float(math.sqrt(math.pow((s1.makespan-s2.makespan),2) + math.pow((s1.total_cost-s2.total_cost),2) + math.pow((s1.rel_inverse-s2.rel_inverse),2)))
+    dist = float(math.sqrt(math.pow((s1.makespan-s2.makespan),2) + math.pow((s1.total_cost-s2.total_cost),2) + math.pow((s1.rel_inverse-s2.rel_inverse),2) + math.pow((s1.degree_of_imbalance-s2.degree_of_imbalance),2) + math.pow((s1.energy - s2.energy), 2)))
     return dist
 
 def pair_solutions(S1, S2):

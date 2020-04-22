@@ -15,6 +15,7 @@ class Workflow:
     task_to_resource_dict = dict()
     billing_time = dict()
     rel_inverse = 1.0
+    energy = 0.0
 
     def __init__(self):
         self.id = 0
@@ -27,6 +28,7 @@ class Workflow:
         self.task_to_resource_dict = dict()
         self.billing_time = dict()
         self.rel_inverse = 1.0
+        self.energy = 0.0
 
     def add_to_workflow(self, task, resource):
         self.workflow.append((task, resource))
@@ -67,8 +69,6 @@ class Workflow:
 
         self.cost = copy.deepcopy(cost)
         self.total_cost = sum(cost.values())
-        
-
 
 
     def calculate_degree_of_imbalance(self, resources_dict):
@@ -99,12 +99,27 @@ class Workflow:
         self.rel_inverse = rel
 
 
+    def calculate_energy(self, tasks_dict, resources_dict, dag_dict):
+        execution_energy = 0
+        transfer_energy = 0
+
+        for (task, resource) in self.workflow:
+            execution_energy += (resources_dict[resource].id + 1) * 1 * self.processing_time[task]
+            
+            for predecessor in tasks_dict[task].predecessor_tasks:
+                if resource != self.task_to_resource_dict[predecessor]:
+                    transfer_energy += (resources_dict[self.task_to_resource_dict[predecessor]].id + 1) * (0.4 * 0.4 * 0.4) * dag_dict[predecessor][task]/(1024.0*1024*1024)
+        
+        self.energy = execution_energy + transfer_energy
+
+
     def schedule(self, id, tasks_dict, resources_dict, dag_dict):
         self.id = id
         self.calculate_makespan(tasks_dict, resources_dict, dag_dict)
         self.calculate_cost(tasks_dict, resources_dict, dag_dict)
         self.calculate_degree_of_imbalance(resources_dict)
         self.calculate_reliability()
+        self.calculate_energy(tasks_dict, resources_dict, dag_dict)
 
     def get_sorted_workflow(self):
         t = copy.deepcopy(self.workflow)

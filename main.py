@@ -8,6 +8,7 @@ from helpers.plot import plot
 from helpers.validate_solution import validate_solution
 
 total_resources = 60
+objectives = 3
 
 
 filename = 'Inspiral_100.xml'
@@ -23,13 +24,13 @@ print("----Generating Dag Dict----")
 dag_dict = init_task_dag(tasks_dict)
 
 print("----Running Moheft1----")
-S1 = moheft(tasks_dict, resources_dict, dag_dict, K)
+S1 = moheft(tasks_dict, resources_dict, dag_dict, K, objectives)
 print("----Running Moheft2----")
-S2 = moheft(tasks_dict, resources_dict, dag_dict, K+100)
+S2 = moheft(tasks_dict, resources_dict, dag_dict, K+100, objectives)
 print("----Running Moheft3----")
-S3 = moheft(tasks_dict, resources_dict, dag_dict, K+200)
+S3 = moheft(tasks_dict, resources_dict, dag_dict, K+200, objectives)
 
-pairs = pair_solutions(S1, S2)
+pairs = pair_solutions(S1, S2, objectives)
 
 t1 = list()
 t2 = list()

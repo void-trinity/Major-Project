@@ -4,7 +4,7 @@ from helpers.crowding_distance_sort import crowding_distance_sort
 import copy
 from helpers.get_pareto_result import get_pareto_result
 
-def moheft(tasks_dict, resources_dict, dag_dict, K):
+def moheft(tasks_dict, resources_dict, dag_dict, K, objectives):
     b_rank = calculate_b_rank(tasks_dict)
 
     schedules = list()
@@ -33,6 +33,6 @@ def moheft(tasks_dict, resources_dict, dag_dict, K):
         for s in temp_list:
             s.schedule(counter, tasks_dict, resources_dict, dag_dict)
             counter = counter + 1
-        schedules = crowding_distance_sort(temp_list, K)
+        schedules = crowding_distance_sort(temp_list, K, objectives)
 
-    return get_pareto_result(schedules)
+    return get_pareto_result(schedules, objectives)

@@ -40,32 +40,63 @@ def sort_by_objective(schedule_list, objective):
 
     return distance_dict, first_item, last_item
 
-def crowding_distance_sort(schedule_list, K):
+def crowding_distance_sort(schedule_list, K, objectives):
     makespan_distance_dict, first_item_makespan, last_item_makespan = sort_by_objective(schedule_list, 'makespan')
     cost_distance_dict, first_item_cost, last_item_cost = sort_by_objective(schedule_list, 'cost')
     degree_of_imbalance_distance_dict, first_item_degree_of_imbalance, last_item_degree_of_imbalance = sort_by_objective(schedule_list, 'degree_of_imbalance')
     reliability_distance_dict, first_item_rel, last_item_rel = sort_by_objective(schedule_list, 'reliability')
     energy_distance_dict, first_item_energy, last_item_energy = sort_by_objective(schedule_list, 'energy')
 
+    objectives_id_list = list()
+    boundary_items_list = list()
     crowding_distance = list()
 
-    makespan_dis_id_list = list(makespan_distance_dict.keys())
-    cost_dis_id_list = list(cost_distance_dict.keys())
-    degree_of_imbalance_id_list = list(degree_of_imbalance_distance_dict.keys())
-    reliability_dis_id_list = list(reliability_distance_dict.keys())
-    energy_dist_id_list = list(energy_distance_dict.keys())
+    objectives_id_list.append(list(makespan_distance_dict.keys()))
+    objectives_id_list.append(list(cost_distance_dict.keys()))
+    objectives_id_list.append(list(degree_of_imbalance_distance_dict.keys()))
+    boundary_items_list.append(first_item_makespan)
+    boundary_items_list.append(last_item_makespan)
+    boundary_items_list.append(first_item_cost)
+    boundary_items_list.append(last_item_cost)
+    boundary_items_list.append(first_item_degree_of_imbalance)
+    boundary_items_list.append(last_item_degree_of_imbalance)
 
-    for id in makespan_dis_id_list:
-        if id in cost_dis_id_list and id in reliability_dis_id_list and id in degree_of_imbalance_id_list and id in energy_dist_id_list:
-            distance = makespan_distance_dict[id] + cost_distance_dict[id] + reliability_distance_dict[id] + degree_of_imbalance_distance_dict[id] + energy_distance_dict[id]
+    if objectives > 3:
+        objectives_id_list.append(list(reliability_distance_dict.keys()))
+        boundary_items_list.append(first_item_rel)
+        boundary_items_list.append(last_item_rel)
+        if objectives > 4:
+            objectives_id_list.append(list(energy_distance_dict.keys()))
+            boundary_items_list.append(first_item_energy)
+            boundary_items_list.append(last_item_energy)
+
+
+
+    for id in objectives_id_list[0]:
+        present = True
+        for i in range(1, len(objectives_id_list)):
+            if id not in objectives_id_list[i]:
+                present = False
+                break
+        if present == True:
+            distance = makespan_distance_dict[id] + cost_distance_dict[id]  + degree_of_imbalance_distance_dict[id]
+            if objectives > 3:
+                distance += reliability_distance_dict[id]
+                if objectives > 4:
+                    distance += energy_distance_dict[id]
             crowding_distance.append((id, distance))
+
 
     sorted_crowding_distance = sorted(crowding_distance, key=lambda d: d[1], reverse=True)
 
     prior_list = []
     result = list()
 
-    for item in [first_item_makespan, last_item_makespan, first_item_cost, last_item_cost, first_item_rel, last_item_rel, first_item_degree_of_imbalance, last_item_degree_of_imbalance, first_item_energy, last_item_energy]:
+    # for item in [first_item_makespan, last_item_makespan, first_item_cost, last_item_cost, first_item_rel, last_item_rel, first_item_degree_of_imbalance, last_item_degree_of_imbalance, first_item_energy, last_item_energy]:
+    #     if item.id not in [x.id for x in prior_list]:
+    #         prior_list.append(item)
+
+    for item in boundary_items_list:
         if item.id not in [x.id for x in prior_list]:
             prior_list.append(item)
 

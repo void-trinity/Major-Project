@@ -90,13 +90,16 @@ class Workflow:
     def calculate_reliability(self):
         reliability = dict()
         for task in self.processing_time:
-            reliability[task] = 1 - float(np.exp(-np.power(self.processing_time[task]/n, b)))
+            reliability[task] = float(np.exp(-np.power(self.processing_time[task]/n, b)))
 
         rel = 1.0
         for task in reliability:
             rel = rel * reliability[task]
 
-        self.rel_inverse = rel
+        if rel != 0:
+          self.rel_inverse = 1/rel
+        else:
+          self.rel_inverse = float('inf')
 
 
     def calculate_energy(self, tasks_dict, resources_dict, dag_dict):

@@ -42,6 +42,7 @@ class Workflow:
 
         for (task, resource) in self.workflow:
             processing_time[task] = float(tasks_dict[task].runtime / resources_dict[resource].cu)
+            self.processing_time[task] = processing_time[task]
             max_time = 0
             for predecessor in tasks_dict[task].predecessor_tasks:
                 if self.task_to_resource_dict[predecessor] != resource:
@@ -53,20 +54,16 @@ class Workflow:
                 finish_time[task] = processing_time[task]
             else:
                 finish_time[task] = processing_time[task] + max([finish_time[x] for x in tasks_dict[task].predecessor_tasks])
-            self.billing_time[resource] += finish_time[task]
+            self.billing_time[resource] = max(self.billing_time[resource], finish_time[task])
 
         self.makespan = max(finish_time.values())
-        self.processing_time = copy.deepcopy(processing_time)
 
 
     def calculate_cost(self, tasks_dict, resources_dict, dag_dict):
         cost = dict()
 
-        for (task, resource) in self.workflow:
-            c1 = self.processing_time[task] * resources_dict[resource].price
-            c2 = (sum([x.size for x in tasks_dict[task].input_files])/(1024*1024*1024.0) + sum([x.size for x in tasks_dict[task].output_files])/(1024*1024*1024.0)) * resources_dict[resource].price
-            cost[task] = c1 + c2
-
+        for resource in self.billing_time:
+            cost[resource] = math.ceil(self.billing_time[resource]/3600) * resources_dict[resource].price
         self.cost = copy.deepcopy(cost)
         self.total_cost = sum(cost.values())
 

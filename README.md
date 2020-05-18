@@ -4,13 +4,7 @@ This folder contains the code for Major Project titled <B>Workflow Scheduling in
 # Instructions to run the code in this repository
 <ol>
 <li>Directly load the Code.ipynb file in your jupyter notebook in Google Colab/ Kaggle and run.</li>
-<li>Create a <a href='https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/'>virtual envieonment</a> and then run the following code:
-
-```python
-#Installing Dependencies
-pip install -r requirements.txt
-
-#Running the code
-python3 main.py
-```
 </ol>
+
+# Note
+Since the previous release, only jupyter notebook is updated and should be the only correct method to use the project. The other project files might change but the changes are done only for testing purposes.
